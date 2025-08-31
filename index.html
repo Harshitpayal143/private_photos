@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Private Photo Vault</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .content {
+            padding: 20px;
+        }
+        
+        .screen {
+            display: none;
+        }
+        
+        .active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+        
+        input:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #2980b9;
+        }
+        
+        .btn-secondary {
+            background: #7f8c8d;
+        }
+        
+        .btn-secondary:hover {
+            background: #636e70;
+        }
+        
+        .error {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .photo-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            aspect-ratio: 1/1;
+        }
+        
+        .photo-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .upload-area {
+            border: 2px dashed #3498db;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .upload-area:hover {
+            background: rgba(52, 152, 219, 0.1);
+        }
+        
+        .upload-icon {
+            font-size: 40px;
+            color: #3498db;
+            margin-bottom: 10px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .action-buttons button {
+            width: auto;
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Private Photo Vault</h1>
+            <p>Keep your photos secure and private</p>
+        </div>
+        
+        <div class="content">
+            <!-- Setup Screen -->
+            <div id="setup-screen" class="screen active">
+                <h2>Create Your Password</h2>
+                <p>Please create a secure password to protect your photos.</p>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter your password">
+                    <div class="error" id="password-error">Password must be at least 6 characters</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirm-password">Confirm Password</label>
+                    <input type="password" id="confirm-password" placeholder="Confirm your password">
+                    <div class="error" id="confirm-error">Passwords do not match</div>
+                </div>
+                
+                <button id="setup-btn">Set Password</button>
+            </div>
+            
+            <!-- Login Screen -->
+            <div id="login-screen" class="screen">
+                <h2>Enter Your Password</h2>
+                <p>Please enter your password to access your photos.</p>
+                
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" placeholder="Enter your password">
+                    <div class="error" id="login-error">Incorrect password</div>
+                </div>
+                
+                <button id="login-btn">Access Photos</button>
+                <div class="action-buttons">
+                    <button id="reset-btn" class="btn-secondary">Reset Vault</button>
+                </div>
+            </div>
+            
+            <!-- Gallery Screen -->
+            <div id="gallery-screen" class="screen">
+                <h2>Your Private Photos</h2>
+                <p>Your photos are securely stored and protected.</p>
+                
+                <div class="upload-area" id="upload-area">
+                    <div class="upload-icon">+</div>
+                    <p>Click to upload a photo or drag and drop</p>
+                    <input type="file" id="file-input" accept="image/*" style="display: none;">
+                </div>
+                
+                <div class="gallery" id="photo-gallery">
+                    <!-- Photos will be displayed here -->
+                </div>
+                
+                <div class="action-buttons">
+                    <button id="logout-btn" class="btn-secondary">Lock Vault</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const setupScreen = document.getElementById('setup-screen');
+            const loginScreen = document.getElementById('login-screen');
+            const galleryScreen = document.getElementById('gallery-screen');
+            
+            const passwordInput = document.getElementById('password');
+            const confirmPasswordInput = document.getElementById('confirm-password');
+            const loginPasswordInput = document.getElementById('login-password');
+            
+            const passwordError = document.getElementById('password-error');
+            const confirmError = document.getElementById('confirm-error');
+            const loginError = document.getElementById('login-error');
+            
+            const setupBtn = document.getElementById('setup-btn');
+            const loginBtn = document.getElementById('login-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            const logoutBtn = document.getElementById('logout-btn');
+            
+            const uploadArea = document.getElementById('upload-area');
+            const fileInput = document.getElementById('file-input');
+            const photoGallery = document.getElementById('photo-gallery');
+            
+            // Check if password is already set
+            checkPasswordStatus();
+            
+            // Setup password
+            setupBtn.addEventListener('click', function() {
+                const password = passwordInput.value;
+                const confirmPassword = confirmPasswordInput.value;
+                
+                // Validate password
+                if (password.length < 6) {
+                    passwordError.style.display = 'block';
+                    return;
+                } else {
+                    passwordError.style.display = 'none';
+                }
+                
+                // Check if passwords match
+                if (password !== confirmPassword) {
+                    confirmError.style.display = 'block';
+                    return;
+                } else {
+                    confirmError.style.display = 'none';
+                }
+                
+                // Save password to localStorage
+                localStorage.setItem('photoVaultPassword', password);
+                
+                // Move to login screen
+                showScreen(loginScreen);
+            });
+            
+            // Login functionality
+            loginBtn.addEventListener('click', function() {
+                const enteredPassword = loginPasswordInput.value;
+                const savedPassword = localStorage.getItem('photoVaultPassword');
+                
+                if (enteredPassword === savedPassword) {
+                    loginError.style.display = 'none';
+                    loadPhotos();
+                    showScreen(galleryScreen);
+                } else {
+                    loginError.style.display = 'block';
+                }
+            });
+            
+            // Reset vault
+            resetBtn.addEventListener('click', function() {
+                if (confirm('Are you sure you want to reset the vault? This will delete all photos and the password.')) {
+                    localStorage.removeItem('photoVaultPassword');
+                    localStorage.removeItem('photoVaultPhotos');
+                    checkPasswordStatus();
+                }
+            });
+            
+            // Logout functionality
+            logoutBtn.addEventListener('click', function() {
+                showScreen(loginScreen);
+                loginPasswordInput.value = '';
+            });
+            
+            // Upload functionality
+            uploadArea.addEventListener('click', function() {
+                fileInput.click();
+            });
+            
+            fileInput.addEventListener('change', function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    const file = e.target.files[0];
+                    
+                    // Check if file is an image
+                    if (!file.type.match('image.*')) {
+                        alert('Please select an image file');
+                        return;
+                    }
+                    
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        // Save photo to localStorage
+                        const photos = getPhotos();
+                        photos.push(e.target.result);
+                        localStorage.setItem('photoVaultPhotos', JSON.stringify(photos));
+                        
+                        // Refresh gallery
+                        loadPhotos();
+                    };
+                    
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            // Drag and drop functionality
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadArea.style.background = 'rgba(52, 152, 219, 0.2)';
+            });
+            
+            uploadArea.addEventListener('dragleave', function() {
+                uploadArea.style.background = '';
+            });
+            
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadArea.style.background = '';
+                
+                if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                    fileInput.files = e.dataTransfer.files;
+                    const event = new Event('change');
+                    fileInput.dispatchEvent(event);
+                }
+            });
+            
+            // Helper functions
+            function checkPasswordStatus() {
+                const savedPassword = localStorage.getItem('photoVaultPassword');
+                
+                if (savedPassword) {
+                    showScreen(loginScreen);
+                } else {
+                    showScreen(setupScreen);
+                }
+            }
+            
+            function showScreen(screen) {
+                // Hide all screens
+                setupScreen.classList.remove('active');
+                loginScreen.classList.remove('active');
+                galleryScreen.classList.remove('active');
+                
+                // Show requested screen
+                screen.classList.add('active');
+            }
+            
+            function getPhotos() {
+                const photosJSON = localStorage.getItem('photoVaultPhotos');
+                return photosJSON ? JSON.parse(photosJSON) : [];
+            }
+            
+            function loadPhotos() {
+                const photos = getPhotos();
+                photoGallery.innerHTML = '';
+                
+                if (photos.length === 0) {
+                    photoGallery.innerHTML = '<p>No photos yet. Upload some to get started!</p>';
+                    return;
+                }
+                
+                photos.forEach(function(photoData, index) {
+                    const photoItem = document.createElement('div');
+                    photoItem.className = 'photo-item';
+                    
+                    const img = document.createElement('img');
+                    img.src = photoData;
+                    
+                    photoItem.appendChild(img);
+                    photoGallery.appendChild(photoItem);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
